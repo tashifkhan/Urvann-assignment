@@ -1,10 +1,10 @@
 const mongodb = require('mongodb');
 
-if (!process.env.MONGODB_URI) {
-  throw new Error('Please add your MONGODB_URI to .env');
-}
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI || '';
+if (!uri) {
+  console.warn('MONGODB_URI is not set — database operations will fail until configured');
+}
 
 // Use a simple global to cache the promise in dev
 declare global {

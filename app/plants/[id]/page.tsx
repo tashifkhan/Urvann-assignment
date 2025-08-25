@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Leaf as Leaf2, Droplets, Sun } from 'lucide-react';
-import { mockPlants } from '@/data/plants';
 import { Badge } from '@/components/ui/badge';
 import { Plant } from '@/types/plant';
 import { Button } from '@/components/ui/button';
@@ -16,15 +15,9 @@ interface PlantDetailPageProps {
   };
 }
 
-export async function generateStaticParams() {
-  // We won't statically generate params from mock data anymore
-  return [];
-}
-
 export default async function PlantDetailPage({
   params,
 }: PlantDetailPageProps) {
-  const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
   let plantRaw: any | null = null;
   try {
     const res = await fetch(`/api/plants/${params.id}`, { cache: 'no-store' });
@@ -34,7 +27,26 @@ export default async function PlantDetailPage({
     console.error('[plants/[id]/page] fetch error', (e as any)?.message || e);
     return notFound();
   }
-  const plant: Plant = { ...plantRaw, createdAt: new Date(plantRaw.createdAt) };
+  // Normalize fields returned from the API to avoid runtime exceptions
+  const plant: Plant = {
+    id: plantRaw?.id || String(plantRaw?._id || ''),
+    name: plantRaw?.name || '',
+    price: Number(plantRaw?.price ?? 0),
+    categories: Array.isArray(plantRaw?.categories)
+      ? plantRaw.categories
+      : plantRaw?.categories
+        ? [plantRaw.categories]
+        : [],
+    stock:
+      typeof plantRaw?.stock === 'number'
+        ? plantRaw.stock
+        : Number(plantRaw?.stock ?? 0),
+    imageUrl: plantRaw?.imageUrl || plantRaw?.image || '',
+    description: plantRaw?.description || '',
+    careTips: plantRaw?.careTips || '',
+    createdAt: plantRaw?.createdAt ? new Date(plantRaw.createdAt) : new Date(),
+    featured: Boolean(plantRaw?.featured),
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
