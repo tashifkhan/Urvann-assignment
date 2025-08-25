@@ -25,11 +25,15 @@ export default async function PlantDetailPage({
   params,
 }: PlantDetailPageProps) {
   const base = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const res = await fetch(`${base}/api/plants/${params.id}`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) notFound();
-  const plantRaw = await res.json();
+  let plantRaw: any | null = null;
+  try {
+    const res = await fetch(`/api/plants/${params.id}`, { cache: 'no-store' });
+    if (!res.ok) return notFound();
+    plantRaw = await res.json();
+  } catch (e) {
+    console.error('[plants/[id]/page] fetch error', (e as any)?.message || e);
+    return notFound();
+  }
   const plant: Plant = { ...plantRaw, createdAt: new Date(plantRaw.createdAt) };
 
   return (
