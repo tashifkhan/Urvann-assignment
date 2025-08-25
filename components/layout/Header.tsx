@@ -22,6 +22,8 @@ interface HeaderProps {
   onCategoryChange: (category: string) => void;
   sortBy: SortOption;
   onSortChange: (sort: SortOption) => void;
+  showCount: number;
+  onShowChange: (n: number) => void;
 }
 
 export function Header({
@@ -31,6 +33,8 @@ export function Header({
   onCategoryChange,
   sortBy,
   onSortChange,
+  showCount,
+  onShowChange,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -82,6 +86,19 @@ export function Header({
                 <SelectItem value="name-za">Name Z-A</SelectItem>
                 <SelectItem value="price-low">Price Low</SelectItem>
                 <SelectItem value="price-high">Price High</SelectItem>
+                <SelectItem value="id-asc">ID Asc</SelectItem>
+                <SelectItem value="id-desc">ID Desc</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={String(showCount)} onValueChange={(v) => onShowChange(Number(v))}>
+              <SelectTrigger className="w-[92px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="6">Show 6</SelectItem>
+                <SelectItem value="12">Show 12</SelectItem>
+                <SelectItem value="24">Show 24</SelectItem>
               </SelectContent>
             </Select>
           </div>

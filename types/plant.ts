@@ -11,7 +11,14 @@ export interface Plant {
   featured?: boolean;
 }
 
-export type SortOption = 'price-low' | 'price-high' | 'name-az' | 'name-za' | 'newest';
+export type SortOption =
+  | 'price-low'
+  | 'price-high'
+  | 'name-az'
+  | 'name-za'
+  | 'newest'
+  | 'id-asc'
+  | 'id-desc';
 
 export interface SearchFilters {
   search: string;

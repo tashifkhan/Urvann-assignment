@@ -46,7 +46,8 @@ export async function GET(req: Request) {
   }
 
   if (category && category !== 'all') {
-    filter.categories = category;
+  // categories in mock/data may be Title Case; match case-insensitively
+  filter.categories = { $elemMatch: { $regex: new RegExp(`^${category}$`, 'i') } };
   }
 
   let totalItems: number;
@@ -60,9 +61,10 @@ export async function GET(req: Request) {
   const sortObj: any = {};
   if (sort) {
     const dir = order === 'asc' ? 1 : -1;
-    if (sort === 'price') sortObj.price = dir;
-    else if (sort === 'name') sortObj.name = dir;
-    else if (sort === 'newest') sortObj.createdAt = dir;
+  if (sort === 'price' || sort === 'price-low' || sort === 'price-high') sortObj.price = dir;
+  else if (sort === 'name' || sort === 'name-az' || sort === 'name-za') sortObj.name = dir;
+  else if (sort === 'newest') sortObj.createdAt = dir;
+  else if (sort === 'id-asc' || sort === 'id-desc') sortObj._id = dir;
   } else {
     sortObj.createdAt = -1;
   }

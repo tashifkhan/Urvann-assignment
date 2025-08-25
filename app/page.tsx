@@ -20,22 +20,31 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showCount, setShowCount] = useState(12);
 
   const [allPlants, setAllPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     const fetchPlants = async () => {
       setLoading(true);
-      const res = await fetch('/api/plants');
+      const params = new URLSearchParams();
+      params.set('page', String(currentPage));
+      params.set('limit', String(showCount));
+      params.set('sort', sortBy);
+      if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
+      if (searchTerm) params.set('search', searchTerm);
+
+      const res = await fetch(`/api/plants?${params.toString()}`);
       let data: any = {};
       try {
         data = await res.json();
       } catch (e) {
-        // if server returns non-JSON, show toast and continue with empty list
         console.error('Failed to parse /api/plants response', e);
         data = {};
       }
+
       const items = (data.items || []).map((it: any) => ({
         id: it.id || (it._id ? String(it._id) : ''),
         name: it.name || '',
@@ -43,8 +52,8 @@ export default function Home() {
         categories: Array.isArray(it.categories)
           ? it.categories
           : it.categories
-            ? [it.categories]
-            : [],
+          ? [it.categories]
+          : [],
         stock: typeof it.stock === 'number' ? it.stock : Number(it.stock || 0),
         imageUrl: it.imageUrl || it.image || '',
         description: it.description || '',
@@ -53,10 +62,11 @@ export default function Home() {
         featured: Boolean(it.featured),
       }));
       setAllPlants(items);
+      setTotalItems(data.totalItems || items.length);
       setLoading(false);
     };
     fetchPlants();
-  }, []);
+  }, [currentPage, showCount, sortBy, selectedCategory, searchTerm]);
 
   const filteredAndSortedPlants = useMemo(() => {
     let plants = allPlants;
@@ -74,8 +84,12 @@ export default function Home() {
   }, [searchTerm, selectedCategory, sortBy, allPlants]);
 
   const paginatedResults = useMemo(() => {
-    return paginateResults(filteredAndSortedPlants, currentPage, 12);
-  }, [filteredAndSortedPlants, currentPage]);
+    return {
+      items: allPlants,
+      totalItems,
+      totalPages: Math.ceil(totalItems / showCount || 1),
+    };
+  }, [allPlants, totalItems, showCount]);
 
   // Reset to page 1 when filters change
   const handleSearchChange = (term: string) => {
@@ -102,6 +116,11 @@ export default function Home() {
         onCategoryChange={handleCategoryChange}
         sortBy={sortBy}
         onSortChange={handleSortChange}
+        showCount={showCount}
+        onShowChange={(n) => {
+          setShowCount(n);
+          setCurrentPage(1);
+        }}
       />
 
       <main className="flex-1">
