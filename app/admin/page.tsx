@@ -29,6 +29,7 @@ import { getCategoryColor } from '@/lib/categories';
 import { formatINR } from '@/lib/format';
 import toast, { Toaster } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -43,11 +44,20 @@ export default function AdminPage() {
   }, [router]);
 
   const [plants, setPlants] = useState<Plant[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPlants = async () => {
+      setLoading(true);
       const res = await fetch('/api/plants');
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        console.error('Failed to parse /api/plants response', e);
+        toast.error('Failed to load plants');
+        data = {};
+      }
       const items = (data.items || []).map((it: any) => ({
         id: it.id || (it._id ? String(it._id) : ''),
         name: it.name || '',
@@ -65,6 +75,7 @@ export default function AdminPage() {
         featured: Boolean(it.featured),
       }));
       setPlants(items);
+      setLoading(false);
     };
     fetchPlants();
   }, []);
@@ -123,87 +134,114 @@ export default function AdminPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {plants.map(plant => (
-                <TableRow key={plant.id}>
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/plants/${plant.id}`}
-                      className="hover:text-green-600 transition-colors"
-                    >
-                      {plant.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {formatINR(plant.price, { maximumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {plant.categories.slice(0, 2).map(category => (
-                        <Badge
-                          key={category}
-                          variant="secondary"
-                          className={`text-xs ${getCategoryColor(category)}`}
+              {loading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                    <TableRow key={`skeleton-${i}`}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-40" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-32" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Skeleton className="h-8 w-20" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                : plants.map(plant => (
+                    <TableRow key={plant.id}>
+                      <TableCell className="font-medium">
+                        <Link
+                          href={`/plants/${plant.id}`}
+                          className="hover:text-green-600 transition-colors"
                         >
-                          {category}
-                        </Badge>
-                      ))}
-                      {plant.categories.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{plant.categories.length - 2}
-                        </Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{plant.stock}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={plant.stock > 0 ? 'default' : 'destructive'}
-                      className={
-                        plant.stock > 0
-                          ? 'bg-green-100 text-green-800 border-green-200'
-                          : ''
-                      }
-                    >
-                      {plant.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link href={`/admin/plants/${plant.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </Link>
-
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Plant</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{plant.name}"?
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeletePlant(plant.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                          {plant.name}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        {formatINR(plant.price, { maximumFractionDigits: 2 })}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {plant.categories.slice(0, 2).map(category => (
+                            <Badge
+                              key={category}
+                              variant="secondary"
+                              className={`text-xs ${getCategoryColor(category)}`}
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                              {category}
+                            </Badge>
+                          ))}
+                          {plant.categories.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{plant.categories.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{plant.stock}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={plant.stock > 0 ? 'default' : 'destructive'}
+                          className={
+                            plant.stock > 0
+                              ? 'bg-green-100 text-green-800 border-green-200'
+                              : ''
+                          }
+                        >
+                          {plant.stock > 0 ? 'In Stock' : 'Out of Stock'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Link href={`/admin/plants/${plant.id}/edit`}>
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </Link>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Delete Plant
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete "{plant.name}
+                                  "? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeletePlant(plant.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
             </TableBody>
           </Table>
         </div>

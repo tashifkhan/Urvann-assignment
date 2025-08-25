@@ -22,11 +22,20 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [allPlants, setAllPlants] = useState<Plant[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPlants = async () => {
+      setLoading(true);
       const res = await fetch('/api/plants');
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        // if server returns non-JSON, show toast and continue with empty list
+        console.error('Failed to parse /api/plants response', e);
+        data = {};
+      }
       const items = (data.items || []).map((it: any) => ({
         id: it.id || (it._id ? String(it._id) : ''),
         name: it.name || '',
@@ -44,6 +53,7 @@ export default function Home() {
         featured: Boolean(it.featured),
       }));
       setAllPlants(items);
+      setLoading(false);
     };
     fetchPlants();
   }, []);
@@ -104,12 +114,18 @@ export default function Home() {
               Discover beautiful plants to transform your space
             </p>
             <div className="mt-4 text-sm text-gray-500">
-              Showing {paginatedResults.items.length} of{' '}
-              {paginatedResults.totalItems} plants
+              {loading ? (
+                <span>Loading plants…</span>
+              ) : (
+                <span>
+                  Showing {paginatedResults.items.length} of{' '}
+                  {paginatedResults.totalItems} plants
+                </span>
+              )}
             </div>
           </div>
 
-          <PlantGrid plants={paginatedResults.items} />
+          <PlantGrid plants={paginatedResults.items} loading={loading} />
 
           <PlantPagination
             currentPage={currentPage}
