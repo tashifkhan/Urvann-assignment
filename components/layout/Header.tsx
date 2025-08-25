@@ -91,7 +91,10 @@ export function Header({
               </SelectContent>
             </Select>
 
-            <Select value={String(showCount)} onValueChange={(v) => onShowChange(Number(v))}>
+            <Select
+              value={String(showCount)}
+              onValueChange={v => onShowChange(Number(v))}
+            >
               <SelectTrigger className="w-[92px]">
                 <SelectValue />
               </SelectTrigger>

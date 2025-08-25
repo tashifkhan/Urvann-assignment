@@ -33,7 +33,8 @@ export default function Home() {
       params.set('page', String(currentPage));
       params.set('limit', String(showCount));
       params.set('sort', sortBy);
-      if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
+      if (selectedCategory && selectedCategory !== 'all')
+        params.set('category', selectedCategory);
       if (searchTerm) params.set('search', searchTerm);
 
       const res = await fetch(`/api/plants?${params.toString()}`);
@@ -52,8 +53,8 @@ export default function Home() {
         categories: Array.isArray(it.categories)
           ? it.categories
           : it.categories
-          ? [it.categories]
-          : [],
+            ? [it.categories]
+            : [],
         stock: typeof it.stock === 'number' ? it.stock : Number(it.stock || 0),
         imageUrl: it.imageUrl || it.image || '',
         description: it.description || '',
@@ -117,7 +118,7 @@ export default function Home() {
         sortBy={sortBy}
         onSortChange={handleSortChange}
         showCount={showCount}
-        onShowChange={(n) => {
+        onShowChange={n => {
           setShowCount(n);
           setCurrentPage(1);
         }}

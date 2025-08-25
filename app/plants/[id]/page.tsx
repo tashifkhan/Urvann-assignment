@@ -20,12 +20,14 @@ export default async function PlantDetailPage({
 }: PlantDetailPageProps) {
   let plantRaw: any | null = null;
   try {
+    console.log(params);
     const res = await fetch(`/api/plants/${params.id}`, { cache: 'no-store' });
     plantRaw = await res.json();
-    if (!plantRaw) return notFound();
+    console.log('Fetched plant:', plantRaw);
+    // if (!plantRaw) return notFound();
   } catch (e) {
-    console.error('[plants/[id]/page] fetch error', (e as any)?.message || e);
-    return notFound();
+    // console.error('[plants/[id]/page] fetch error', (e as any)?.message || e);
+    // return notFound();
   }
   // Normalize fields returned from the API to avoid runtime exceptions
   const plant: Plant = {

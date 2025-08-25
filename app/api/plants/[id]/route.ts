@@ -1,27 +1,24 @@
 import clientPromise from '@/lib/mongo';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { number, z } from 'zod';
 import { jwtVerify } from 'jose';
 
-const idSchema = z.object({ id: z.string().min(1) });
-
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const parsed = idSchema.safeParse(params);
-  if (!parsed.success) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
-
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const client = await clientPromise;
   const db = client.db();
   const col = db.collection('plants');
   try {
-  const ObjectId = require('mongodb').ObjectId;
-  const doc = await col.findOne({ _id: new ObjectId(params.id) });
-    if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    const idd = parseInt(params.id)
+    const doc = await col.findOne({ id: idd });
+    console.log(doc)
+
+    // if (!doc) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     const { _id, ...rest } = doc as any;
-    const item = { id: _id.toString(), ...rest };
-    return NextResponse.json(item);
+    console.log(rest)
+    return NextResponse.json(rest);
   } catch (e) {
-  console.error('[api/plants/[id]] GET error', (e as any)?.message || e);
-  return NextResponse.json({ error: 'Invalid id or database error', message: String((e as any)?.message || e) }, { status: 400 });
+    // console.error('[api/plants/[id]] GET error', (e as any)?.message || e);
+    // return NextResponse.json({ error: 'Database error', message: String((e as any)?.message || e) }, { status: 500 });
   }
 }
 
