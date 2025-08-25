@@ -21,8 +21,8 @@ export default async function PlantDetailPage({
   let plantRaw: any | null = null;
   try {
     const res = await fetch(`/api/plants/${params.id}`, { cache: 'no-store' });
-    if (!res.ok) return notFound();
     plantRaw = await res.json();
+    if (!plantRaw) return notFound();
   } catch (e) {
     console.error('[plants/[id]/page] fetch error', (e as any)?.message || e);
     return notFound();
